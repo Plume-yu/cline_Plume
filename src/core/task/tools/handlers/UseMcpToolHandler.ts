@@ -71,7 +71,12 @@ export class UseMcpToolHandler implements IFullyManagedTool {
 				parsedArguments = JSON.parse(mcp_arguments)
 			} catch (_error) {
 				config.taskState.consecutiveMistakeCount++
-				await config.callbacks.say("error", `Cline tried to use ${tool_name} with an invalid JSON argument. Retrying...`)
+				const preferredLanguage = config.services.stateManager.getGlobalSettingsKey("preferredLanguage")
+				const isChinese = preferredLanguage && (preferredLanguage.includes("中文") || preferredLanguage.includes("zh"))
+				const errorMessage = isChinese 
+					? `Cline 尝试使用 ${tool_name} 时使用了无效的 JSON 参数。正在重试...`
+					: `Cline tried to use ${tool_name} with an invalid JSON argument. Retrying...`
+				await config.callbacks.say("error", errorMessage)
 				return formatResponse.toolError(formatResponse.invalidMcpToolArgumentError(server_name, tool_name))
 			}
 		}

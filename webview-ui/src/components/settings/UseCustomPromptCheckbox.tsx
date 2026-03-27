@@ -1,5 +1,6 @@
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import React, { useCallback, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { updateSetting } from "./utils/settingsHandlers"
 
@@ -11,6 +12,7 @@ interface CustomPromptCheckboxProps {
  * Checkbox to enable or disable the use of a compact prompt for local models providers.
  */
 const UseCustomPromptCheckbox: React.FC<CustomPromptCheckboxProps> = ({ providerId }) => {
+	const { t } = useTranslation()
 	const { customPrompt } = useExtensionState()
 	const [isCompactPromptEnabled, setIsCompactPromptEnabled] = useState<boolean>(customPrompt === "compact")
 
@@ -22,15 +24,15 @@ const UseCustomPromptCheckbox: React.FC<CustomPromptCheckboxProps> = ({ provider
 	return (
 		<div id={providerId}>
 			<VSCodeCheckbox checked={isCompactPromptEnabled} onChange={() => toggleCompactPrompt(!isCompactPromptEnabled)}>
-				Use compact prompt
-			</VSCodeCheckbox>
-			<div className="text-xs text-description">
-				A system prompt optimized for smaller context window (e.g. 8k or less).
-				<div className="text-error flex align-middle">
-					<i className="codicon codicon-x" />
-					Does not support Mcp and Focus Chain
-				</div>
+			{t("ollama.useCompactPrompt")}
+		</VSCodeCheckbox>
+		<div className="text-xs text-description">
+			{t("ollama.useCompactPromptDesc")}
+			<div className="text-error flex align-middle">
+				<i className="codicon codicon-x" />
+				{t("ollama.useCompactPromptWarning")}
 			</div>
+		</div>
 		</div>
 	)
 }

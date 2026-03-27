@@ -34,16 +34,16 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	api_req_failed: {
 		sendingDisabled: true,
 		enableButtons: true,
-		primaryText: "Retry",
-		secondaryText: "Start New Task",
+		primaryText: "重试",
+		secondaryText: "开始新任务",
 		primaryAction: "retry",
 		secondaryAction: "new_task",
 	},
 	mistake_limit_reached: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Proceed Anyways",
-		secondaryText: "Start New Task",
+		primaryText: "继续执行",
+		secondaryText: "开始新任务",
 		primaryAction: "proceed",
 		secondaryAction: "new_task",
 	},
@@ -52,16 +52,16 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	tool_approve: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Approve",
-		secondaryText: "Reject",
+		primaryText: "批准",
+		secondaryText: "拒绝",
 		primaryAction: "approve",
 		secondaryAction: "reject",
 	},
 	tool_save: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Save",
-		secondaryText: "Reject",
+		primaryText: "保存",
+		secondaryText: "拒绝",
 		primaryAction: "approve",
 		secondaryAction: "reject",
 	},
@@ -70,15 +70,15 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	command: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Run Command",
-		secondaryText: "Reject",
+		primaryText: "运行命令",
+		secondaryText: "拒绝",
 		primaryAction: "approve",
 		secondaryAction: "reject",
 	},
 	command_output: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Proceed While Running",
+		primaryText: "继续执行",
 		secondaryText: undefined,
 		primaryAction: "proceed",
 		secondaryAction: undefined,
@@ -88,24 +88,24 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	browser_action_launch: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Approve",
-		secondaryText: "Reject",
+		primaryText: "批准",
+		secondaryText: "拒绝",
 		primaryAction: "approve",
 		secondaryAction: "reject",
 	},
 	use_mcp_server: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Approve",
-		secondaryText: "Reject",
+		primaryText: "批准",
+		secondaryText: "拒绝",
 		primaryAction: "approve",
 		secondaryAction: "reject",
 	},
 	use_subagents: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Approve",
-		secondaryText: "Reject",
+		primaryText: "批准",
+		secondaryText: "拒绝",
 		primaryAction: "approve",
 		secondaryAction: "reject",
 	},
@@ -130,7 +130,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	completion_result: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Start New Task",
+		primaryText: "开始新任务",
 		secondaryText: undefined,
 		primaryAction: "new_task",
 		secondaryAction: undefined,
@@ -138,7 +138,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	resume_task: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Resume Task",
+		primaryText: "恢复任务",
 		secondaryText: undefined,
 		primaryAction: "proceed",
 		secondaryAction: undefined,
@@ -146,7 +146,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	resume_completed_task: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Start New Task",
+		primaryText: "开始新任务",
 		secondaryText: undefined,
 		primaryAction: "new_task",
 		secondaryAction: undefined,
@@ -154,7 +154,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	new_task: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Start New Task with Context",
+		primaryText: "开始新任务（带上下文）",
 		secondaryText: undefined,
 		primaryAction: "new_task",
 		secondaryAction: undefined,
@@ -164,7 +164,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	condense: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Condense Conversation",
+		primaryText: "压缩对话",
 		secondaryText: undefined,
 		primaryAction: "utility",
 		secondaryAction: undefined,
@@ -172,7 +172,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	report_bug: {
 		sendingDisabled: false,
 		enableButtons: true,
-		primaryText: "Report GitHub issue",
+		primaryText: "报告 GitHub 问题",
 		secondaryText: undefined,
 		primaryAction: "utility",
 		secondaryAction: undefined,
@@ -183,7 +183,7 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 		sendingDisabled: true,
 		enableButtons: true,
 		primaryText: undefined,
-		secondaryText: "Cancel",
+		secondaryText: "取消",
 		primaryAction: undefined,
 		secondaryAction: "cancel",
 	},
@@ -199,112 +199,128 @@ export const BUTTON_CONFIGS: Record<string, ButtonConfig> = {
 	},
 	api_req_active: {
 		sendingDisabled: true,
-		enableButtons: true,
+		enableButtons: false,
 		primaryText: undefined,
-		secondaryText: "Cancel",
+		secondaryText: undefined,
 		primaryAction: undefined,
-		secondaryAction: "cancel",
+		secondaryAction: undefined,
 	},
 }
 
-const errorTypes = ["api_req_failed", "mistake_limit_reached"]
-
 /**
- * Determines button configuration based on message type and state
- * This is the single source of truth used by both ActionButtons and useMessageHandlers
+ * Gets the button configuration for a given message
+ * This is the main entry point for determining button state
  */
-export function getButtonConfig(message: ClineMessage | undefined, _mode: Mode = "act"): ButtonConfig {
+export function getButtonConfig(message: ClineMessage | undefined, mode?: Mode): ButtonConfig {
 	if (!message) {
 		return BUTTON_CONFIGS.default
 	}
 
 	const isStreaming = message.partial === true
-	const isError = message?.ask ? errorTypes.includes(message.ask) : false
+	const stateKey = determineButtonState(message, isStreaming, isStreaming, mode || "act")
 
-	// Special case: command_output should show "Proceed While Running" button even while streaming
-	// This allows terminal output to stream while still showing the action button
-	if (message.type === "ask" && message.ask === "command_output") {
-		return BUTTON_CONFIGS.command_output
+	return BUTTON_CONFIGS[stateKey] || BUTTON_CONFIGS.default
+}
+
+/**
+ * Determines the appropriate button state key based on the current message context
+ */
+export function determineButtonState(
+	message: ClineMessage,
+	isStreaming: boolean,
+	isPartial: boolean,
+	mode: Mode,
+): string {
+	// During streaming, show partial state
+	if (isStreaming || isPartial) {
+		return "partial"
 	}
 
-	// Handle partial/streaming messages first (most common during task execution)
-	// This must be checked before any other conditions to ensure streaming state takes precedence
-	if (isStreaming && !isError) {
-		return BUTTON_CONFIGS.partial
-	}
-
-	// Handle ask messages (user interaction required)
+	// Check for ask messages that need button responses
 	if (message.type === "ask") {
+		// Handle different ask types
 		switch (message.ask) {
-			// Error recovery states
 			case "api_req_failed":
-				return BUTTON_CONFIGS.api_req_failed
+				return "api_req_failed"
 			case "mistake_limit_reached":
-				return BUTTON_CONFIGS.mistake_limit_reached
-
-			// Tool approval (most common)
-			case "tool": {
-				// Only parse JSON if we need to determine save vs approve
-				try {
-					const tool = JSON.parse(message.text || "{}") as ClineSayTool
-					if (tool.tool === "editedExistingFile" || tool.tool === "newFileCreated" || tool.tool === "fileDeleted") {
-						return BUTTON_CONFIGS.tool_save
-					}
-				} catch {
-					// Fall through to default tool approval
-				}
-				return BUTTON_CONFIGS.tool_approve
-			}
-
-			// Command execution
+				return "mistake_limit_reached"
+			case "tool":
+				return handleToolApproval(message)
 			case "command":
-				return BUTTON_CONFIGS.command
-			case "command_output":
-				return BUTTON_CONFIGS.command_output
-
-			// Standard approvals
-			case "followup":
-				return BUTTON_CONFIGS.followup
+				return handleCommandApproval(message)
 			case "browser_action_launch":
-				return BUTTON_CONFIGS.browser_action_launch
+				return "browser_action_launch"
 			case "use_mcp_server":
-				return BUTTON_CONFIGS.use_mcp_server
+				return "use_mcp_server"
 			case "use_subagents":
-				return BUTTON_CONFIGS.use_subagents
+				return "use_subagents"
+			case "followup":
+				return "followup"
 			case "plan_mode_respond":
-				return BUTTON_CONFIGS.plan_mode_respond
-
-			// Task lifecycle
+				return "plan_mode_respond"
 			case "completion_result":
-				return BUTTON_CONFIGS.completion_result
+				return "completion_result"
 			case "resume_task":
-				return BUTTON_CONFIGS.resume_task
+				return "resume_task"
 			case "resume_completed_task":
-				return BUTTON_CONFIGS.resume_completed_task
+				return "resume_completed_task"
 			case "new_task":
-				return BUTTON_CONFIGS.new_task
-
-			// Utility
+				return "new_task"
 			case "condense":
-				return BUTTON_CONFIGS.condense
+				return "condense"
 			case "report_bug":
-				return BUTTON_CONFIGS.report_bug
-
+				return "report_bug"
 			default:
-				return BUTTON_CONFIGS.tool_approve
+				return "default"
 		}
 	}
 
-	// Handle say messages (typically don't require buttons except in special cases)
+	// Check for say messages that indicate active API requests
 	if (message.type === "say" && message.say === "api_req_started") {
-		return BUTTON_CONFIGS.api_req_active
+		return "api_req_active"
 	}
 
-	// Special case: command_output say messages should show "Proceed While Running" button
-	// This allows terminal output to stream while still showing the action button
-	if (message.type === "say" && message.say === "command_output") {
-		return BUTTON_CONFIGS.command_output
+	return "default"
+}
+
+/**
+ * Handles tool approval button state based on tool type
+ */
+function handleToolApproval(message: ClineMessage): string {
+	if (!message.text) {
+		return "tool_approve"
 	}
 
-	return BUTTON_CONFIGS.partial
+	try {
+		const toolData = JSON.parse(message.text) as ClineSayTool
+		// Save operations get a different primary button text
+		if (toolData.tool === "editedExistingFile" || toolData.tool === "newFileCreated") {
+			return "tool_save"
+		}
+	} catch {
+		// If parsing fails, use default tool approval
+	}
+
+	return "tool_approve"
+}
+
+/**
+ * Handles command approval button state
+ */
+function handleCommandApproval(message: ClineMessage): string {
+	if (!message.text) {
+		return "command"
+	}
+
+	try {
+		const commandData = JSON.parse(message.text)
+		// Commands that are already running show "Proceed While Running"
+		if (commandData.request_status === "running") {
+			return "command_output"
+		}
+	} catch {
+		// If parsing fails, use default command approval
+	}
+
+	return "command"
 }

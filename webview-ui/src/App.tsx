@@ -11,6 +11,7 @@ import WelcomeView from "./components/welcome/WelcomeView"
 import WorktreesView from "./components/worktrees/WorktreesView"
 import { useClineAuth } from "./context/ClineAuthContext"
 import { useExtensionState } from "./context/ExtensionStateContext"
+import "./i18n"
 import { Providers } from "./Providers"
 import { StateServiceClient, UiServiceClient } from "./services/grpc-client"
 

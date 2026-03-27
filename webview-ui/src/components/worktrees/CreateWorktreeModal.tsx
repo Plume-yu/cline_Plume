@@ -3,18 +3,18 @@ import { CreateWorktreeRequest, SwitchWorktreeRequest } from "@shared/proto/clin
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { AlertCircle, AlertTriangle, Loader2, X } from "lucide-react"
 import { memo, useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { WorktreeServiceClient } from "@/services/grpc-client"
 
 interface CreateWorktreeModalProps {
 	open: boolean
 	onClose: () => void
-	/** When true, opens the worktree in a new window after creation */
 	openAfterCreate?: boolean
-	/** Called after successful creation (and opening if openAfterCreate is true) */
 	onSuccess?: () => void
 }
 
 const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess }: CreateWorktreeModalProps) => {
+	const { t } = useTranslation()
 	const [newWorktreePath, setNewWorktreePath] = useState("")
 	const [newBranchName, setNewBranchName] = useState("")
 	const [isCreating, setIsCreating] = useState(false)
@@ -22,7 +22,6 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 	const [isLoadingDefaults, setIsLoadingDefaults] = useState(false)
 	const [hasWorktreeInclude, setHasWorktreeInclude] = useState<boolean | null>(null)
 
-	// Load defaults and check .worktreeinclude status when modal opens
 	const loadDefaults = useCallback(async () => {
 		setIsLoadingDefaults(true)
 		try {
@@ -46,7 +45,6 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 		}
 	}, [open, loadDefaults])
 
-	// Reset form state when modal closes
 	useEffect(() => {
 		if (!open) {
 			setNewWorktreePath("")
@@ -75,7 +73,6 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 			if (!result.success) {
 				setCreateError(result.message)
 			} else {
-				// If openAfterCreate is true, open the worktree in a new window
 				if (openAfterCreate && result.worktree?.path) {
 					await WorktreeServiceClient.switchWorktree(
 						SwitchWorktreeRequest.create({
@@ -88,22 +85,20 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 				onClose()
 			}
 		} catch (err) {
-			setCreateError(err instanceof Error ? err.message : "Failed to create worktree")
+			setCreateError(err instanceof Error ? err.message : t("worktree.createFailed"))
 		} finally {
 			setIsCreating(false)
 		}
-	}, [newWorktreePath, newBranchName, openAfterCreate, onSuccess, onClose])
+	}, [newWorktreePath, newBranchName, openAfterCreate, onSuccess, onClose, t])
 
 	if (!open) {
 		return null
 	}
 
-	const title = openAfterCreate ? "New Worktree" : "Create New Worktree"
-	const buttonText = openAfterCreate ? "Create & Open" : "Create Worktree"
-	const creatingText = openAfterCreate ? "Creating & Opening..." : "Creating..."
-	const description = openAfterCreate
-		? "This will create a copy of your project on a new branch and open in a separate window."
-		: "This will create a copy of your project on a new branch."
+	const title = openAfterCreate ? t("worktree.newWorktree") : t("worktree.createNewWorktree")
+	const buttonText = openAfterCreate ? t("worktree.createAndOpen") : t("worktree.createWorktree")
+	const creatingText = openAfterCreate ? t("worktree.creatingAndOpening") : t("worktree.creating")
+	const description = openAfterCreate ? t("worktree.newWorktreeDesc") : t("worktree.createWorktreeDesc")
 
 	return (
 		<div
@@ -114,7 +109,6 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 				}
 			}}>
 			<div className="bg-[var(--vscode-editor-background)] border border-[var(--vscode-panel-border)] rounded-lg p-5 w-[450px] max-w-[90vw] relative">
-				{/* Close button */}
 				<button
 					className="absolute top-3 right-3 p-1 rounded hover:bg-[var(--vscode-toolbar-hoverBackground)] text-[var(--vscode-descriptionForeground)] hover:text-[var(--vscode-foreground)] cursor-pointer"
 					onClick={onClose}
@@ -129,21 +123,21 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 						style={{ backgroundColor: "var(--vscode-inputValidation-warningBackground)" }}>
 						<AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-[var(--vscode-editorWarning-foreground)]" />
 						<p className="text-xs text-[var(--vscode-foreground)] m-0">
-							No .worktreeinclude detected.{" "}
+							{t("worktree.noWorktreeInclude")}{" "}
 							<a
 								className="text-[var(--vscode-textLink-foreground)] hover:text-[var(--vscode-textLink-activeForeground)]"
 								href="https://docs.cline.bot/features/worktrees#worktreeinclude"
 								rel="noopener noreferrer"
 								style={{ fontSize: "inherit" }}
 								target="_blank">
-								Learn more
+								{t("worktree.learnMore")}
 							</a>
 						</p>
 					</div>
 				)}
 				<div className="flex flex-col">
 					<div>
-						<label className="block text-sm font-medium mb-1">Branch Name *</label>
+						<label className="block text-sm font-medium mb-1">{t("worktree.branchName")} *</label>
 						<VSCodeTextField
 							className="w-full"
 							onInput={(e) => setNewBranchName((e.target as HTMLInputElement).value)}
@@ -165,11 +159,11 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 							)}
 						</VSCodeTextField>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-							Your new copy will be checked out to this branch.
+							{t("worktree.branchNameDesc")}
 						</p>
 					</div>
 					<div>
-						<label className="block text-sm font-medium mb-1">Folder Path *</label>
+						<label className="block text-sm font-medium mb-1">{t("worktree.folderPath")} *</label>
 						<VSCodeTextField
 							className="w-full"
 							onInput={(e) => setNewWorktreePath((e.target as HTMLInputElement).value)}
@@ -191,7 +185,7 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 							)}
 						</VSCodeTextField>
 						<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-							Where the project will be copied for the worktree.
+							{t("worktree.folderPathDesc")}
 						</p>
 					</div>
 					{createError && (
@@ -207,7 +201,7 @@ const CreateWorktreeModal = ({ open, onClose, openAfterCreate = false, onSuccess
 							{isLoadingDefaults ? (
 								<>
 									<Loader2 className="w-4 h-4 mr-1 animate-spin" />
-									Loading...
+									{t("worktree.loading")}
 								</>
 							) : isCreating ? (
 								<>

@@ -30,9 +30,14 @@ export class UseSkillToolHandler implements IToolHandler, IPartialBlockHandler {
 	async execute(config: TaskConfig, block: ToolUse): Promise<ToolResponse> {
 		const skillName: string | undefined = block.params.skill_name
 
+		const preferredLanguage = config.services.stateManager.getGlobalSettingsKey("preferredLanguage")
+		const isChinese = preferredLanguage && (preferredLanguage.includes("中文") || preferredLanguage.includes("zh"))
+
 		if (!skillName) {
 			config.taskState.consecutiveMistakeCount++
-			return `Error: Missing required parameter 'skill_name'. Please provide the name of the skill to activate.`
+			return isChinese 
+				? `错误：缺少必需参数 'skill_name'。请提供要激活的技能名称。`
+				: `Error: Missing required parameter 'skill_name'. Please provide the name of the skill to activate.`
 		}
 
 		// Discover skills on-demand (lazy loading)
@@ -49,7 +54,9 @@ export class UseSkillToolHandler implements IToolHandler, IPartialBlockHandler {
 		})
 
 		if (availableSkills.length === 0) {
-			return `Error: No skills are available. Skills may be disabled or not configured.`
+			return isChinese 
+				? `错误：没有可用的技能。技能可能已禁用或未配置。`
+				: `Error: No skills are available. Skills may be disabled or not configured.`
 		}
 
 		const globalCount = availableSkills.filter((skill) => skill.source === "global").length
@@ -72,7 +79,9 @@ export class UseSkillToolHandler implements IToolHandler, IPartialBlockHandler {
 
 			if (!skillContent) {
 				const availableNames = availableSkills.map((s: SkillMetadata) => s.name).join(", ")
-				return `Error: Skill "${skillName}" not found. Available skills: ${availableNames || "none"}`
+				return isChinese 
+					? `错误：技能 "${skillName}" 未找到。可用技能：${availableNames || "无"}`
+					: `Error: Skill "${skillName}" not found. Available skills: ${availableNames || "none"}`
 			}
 
 			telemetryService.safeCapture(
@@ -96,7 +105,9 @@ ${skillContent.instructions}
 ---
 IMPORTANT: The skill is now loaded. Do NOT call use_skill again for this task. Simply follow the instructions above to complete the user's request. You may access other files in the skill directory at: ${skillContent.path.replace(/SKILL\.md$/, "")}`
 		} catch (error) {
-			return `Error loading skill "${skillName}": ${(error as Error)?.message}`
+			return isChinese 
+				? `加载技能 "${skillName}" 时出错：${(error as Error)?.message}`
+				: `Error loading skill "${skillName}": ${(error as Error)?.message}`
 		}
 	}
 }

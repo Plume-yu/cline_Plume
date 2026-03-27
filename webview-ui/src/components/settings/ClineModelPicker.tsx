@@ -7,6 +7,7 @@ import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import type React from "react"
 import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useMount } from "react-use"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -92,6 +93,7 @@ const FREE_MODELS_FALLBACK: FeaturedModelCardEntry[] = CLINE_RECOMMENDED_MODELS_
 	.filter((model): model is FeaturedModelCardEntry => model !== null)
 
 const ClineModelPicker: React.FC<ClineModelPickerProps> = ({ isPopup, currentMode, showProviderRouting, initialTab }) => {
+	const { t } = useTranslation()
 	const { handleModeFieldsChange, handleFieldChange } = useApiConfigurationHandlers()
 	const { apiConfiguration, favoritedModelIds, clineModels, refreshClineModels } = useExtensionState()
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
@@ -384,19 +386,19 @@ const ClineModelPicker: React.FC<ClineModelPickerProps> = ({ isPopup, currentMod
 			</style>
 			<div style={{ display: "flex", flexDirection: "column" }}>
 				<label htmlFor="model-search">
-					<span style={{ fontWeight: 500 }}>Model</span>
-				</label>
+									<span style={{ fontWeight: 500 }}>{t("apiOptions.model")}</span>
+								</label>
 
-				<>
-					{/* Tabs */}
-					<TabsContainer style={{ marginTop: 4 }}>
-						<Tab active={activeTab === "recommended"} onClick={() => setActiveTab("recommended")}>
-							Recommended
-						</Tab>
-						<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
-							Free
-						</Tab>
-					</TabsContainer>
+								<>
+									{/* Tabs */}
+									<TabsContainer style={{ marginTop: 4 }}>
+										<Tab active={activeTab === "recommended"} onClick={() => setActiveTab("recommended")}>
+											{t("apiOptions.recommended")}
+										</Tab>
+										<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
+											{t("apiOptions.free")}
+										</Tab>
+									</TabsContainer>
 
 					{/* Model Cards */}
 					<div style={{ marginBottom: "6px" }}>
@@ -445,7 +447,7 @@ const ClineModelPicker: React.FC<ClineModelPickerProps> = ({ isPopup, currentMod
 							setIsDropdownVisible(true)
 						}}
 						onKeyDown={handleKeyDown}
-						placeholder="Search and select a model..."
+						placeholder={t("apiOptions.searchModel")}
 						role="combobox"
 						style={{
 							width: "100%",
@@ -558,10 +560,9 @@ const ClineModelPicker: React.FC<ClineModelPickerProps> = ({ isPopup, currentMod
 						fontSize: "12px",
 						marginTop: 0,
 						color: "var(--vscode-descriptionForeground)",
-					}}>
-					The extension automatically fetches the latest Cline model list. If you're unsure which model to choose, Cline
-					works best with <strong>anthropic/claude-sonnet-4.5</strong>.
-				</p>
+					}}
+					dangerouslySetInnerHTML={{ __html: t("apiOptions.modelDescription") }}
+				/>
 			)}
 		</div>
 	)

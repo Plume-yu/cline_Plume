@@ -46,4 +46,8 @@ export const baseTemplate = `{{${SystemPromptSection.AGENT_ROLE}}}
 
 ====
 
-{{${SystemPromptSection.USER_INSTRUCTIONS}}}`
+{{${SystemPromptSection.USER_INSTRUCTIONS}}}
+
+{{CHINESE_PROGRAMMING_BEST_PRACTICES}}
+
+{{CHINESE_ENGLISH_GLOSSARY}}`

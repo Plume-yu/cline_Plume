@@ -15,15 +15,15 @@ const generic: ClineToolSpec = {
 			name: "question",
 			required: true,
 			instruction:
-				"The question to ask the user. This should be a clear, specific question that addresses the information you need.",
-			usage: "Your question here",
+				"The question to ask the user. This should be a clear, specific question that addresses the information you need. IMPORTANT: The question MUST be in Chinese (中文).",
+			usage: "Your question here (in Chinese)",
 		},
 		{
 			name: "options",
 			required: false,
 			instruction:
-				"An array of 2-5 options for the user to choose from. Each option should be a string describing a possible answer. You may not always need to provide options, but it may be helpful in many cases where it can save the user from having to type out a response manually. IMPORTANT: NEVER include an option to toggle to Act mode, as this would be something you need to direct the user to do manually themselves if needed.",
-			usage: 'Array of options here (optional), e.g. ["Option 1", "Option 2", "Option 3"]',
+				"An array of 2-5 options for the user to choose from. Each option should be a string describing a possible answer. IMPORTANT: All options MUST be in Chinese (中文). You may not always need to provide options, but it may be helpful in many cases where it can save the user from having to type out a response manually. IMPORTANT: NEVER include an option to toggle to Act mode, as this would be something you need to direct the user to do manually themselves if needed.",
+			usage: 'Array of options here in Chinese (optional), e.g. ["选项1", "选项2", "选项3"]',
 		},
 		TASK_PROGRESS_PARAMETER,
 	],
@@ -40,13 +40,13 @@ const NATIVE_NEXT_GEN: ClineToolSpec = {
 		{
 			name: "question",
 			required: true,
-			instruction: 'The single question to ask the user. E.g. "How can I help you?"',
+			instruction: 'The single question to ask the user. E.g. "How can I help you?" IMPORTANT: The question MUST be in Chinese (中文).',
 		},
 		{
 			name: "options",
-			required: true,
+			required: false,
 			instruction:
-				'An array of 2-5 options (e.x: "["Option 1", "Option 2", "Option 3"]") for the user to choose from. Each option should be a string describing a possible answer to the single question. You may not always need to provide options, but it may be helpful in many cases where it can save the user from having to type out a response manually. IMPORTANT: NEVER include an option to toggle to Act mode, as this would be something you need to direct the user to do manually themselves if needed.',
+				'An array of 2-5 options (e.x: "["Option 1", "Option 2", "Option 3"]") for the user to choose from. Each option should be a string describing a possible answer to the single question. IMPORTANT: All options MUST be in Chinese (中文). You may not always need to provide options, but it may be helpful in many cases where it can save the user from having to type out a response manually. IMPORTANT: NEVER include an option to toggle to Act mode, as this would be something you need to direct the user to do manually themselves if needed.',
 		},
 		TASK_PROGRESS_PARAMETER,
 	],

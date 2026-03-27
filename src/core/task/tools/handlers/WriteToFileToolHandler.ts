@@ -131,21 +131,19 @@ export class WriteToFileToolHandler implements IFullyManagedTool {
 			const contextWindow = config.api.getModel().info.contextWindow ?? 128_000
 			const lastApiReqTotalTokens = getLastApiReqTotalTokens(config.messageState.getClineMessages())
 			const contextUsagePercent = contextWindow > 0 ? Math.round((lastApiReqTotalTokens / contextWindow) * 100) : undefined
-			const errorMessage = formatResponse.writeToFileMissingContentError(
+			const toolErrorMessage = formatResponse.writeToFileMissingContentError(
 				relPath,
 				config.taskState.consecutiveMistakeCount,
 				contextUsagePercent,
 			)
 
-			await config.callbacks.say(
-				"error",
-				`Cline tried to use write_to_file for '${relPath}' without value for required parameter 'content'. ${
-					config.taskState.consecutiveMistakeCount >= 2
-						? "This has happened multiple times — Cline will try a different approach."
-						: "Retrying..."
-				}`,
-			)
-			return formatResponse.toolError(errorMessage)
+			const preferredLanguage = config.services.stateManager.getGlobalSettingsKey("preferredLanguage")
+			const isChinese = preferredLanguage && (preferredLanguage.includes("中文") || preferredLanguage.includes("zh"))
+			const userErrorMessage = isChinese 
+				? `Cline 尝试使用 write_to_file 写入 '${relPath}' 时缺少必需参数 'content' 的值。${config.taskState.consecutiveMistakeCount >= 2 ? "这种情况已经发生多次 — Cline 将尝试不同的方法。" : "正在重试..."}`
+				: `Cline tried to use write_to_file for '${relPath}' without value for required parameter 'content'. ${config.taskState.consecutiveMistakeCount >= 2 ? "This has happened multiple times — Cline will try a different approach." : "Retrying..."}`
+			await config.callbacks.say("error", userErrorMessage)
+			return formatResponse.toolError(toolErrorMessage)
 		}
 
 		if (block.name === "new_rule" && !rawContent) {

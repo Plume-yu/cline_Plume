@@ -66,32 +66,31 @@ function separateFiles(allFiles: string[]): {
 	filesToParse: string[]
 	remainingFiles: string[]
 } {
-	const extensions = [
-		"js",
-		"jsx",
-		"ts",
-		"tsx",
-		"py",
-		// Rust
-		"rs",
-		"go",
-		// C
-		"c",
-		"h",
-		// C++
-		"cpp",
-		"hpp",
-		// C#
-		"cs",
-		// Ruby
-		"rb",
-		"java",
-		"php",
-		"swift",
-		// Kotlin
-		"kt",
-	].map((e) => `.${e}`)
-	const filesToParse = allFiles.filter((file) => extensions.includes(path.extname(file))).slice(0, 50) // 50 files max
+	const headerExtensions = [".h", ".hpp", ".hxx", ".hh"]
+	const sourceExtensions = [
+		".js",
+		".jsx",
+		".ts",
+		".tsx",
+		".py",
+		".rs",
+		".go",
+		".c",
+		".cpp",
+		".cc",
+		".cxx",
+		".cs",
+		".rb",
+		".java",
+		".php",
+		".swift",
+		".kt",
+	]
+	
+	const headerFiles = allFiles.filter((file) => headerExtensions.includes(path.extname(file)))
+	const sourceFiles = allFiles.filter((file) => sourceExtensions.includes(path.extname(file)))
+	
+	const filesToParse = [...headerFiles, ...sourceFiles].slice(0, 50)
 	const remainingFiles = allFiles.filter((file) => !filesToParse.includes(file))
 	return { filesToParse, remainingFiles }
 }

@@ -18,7 +18,26 @@ In each user message, the environment_details will specify the current mode. The
 - When starting in PLAN MODE, depending on the user's request, you may need to do some information gathering e.g. using read_file or search_files to get more context about the task.${context.yoloModeToggled !== true ? " You may also ask the user clarifying questions with ask_followup_question to get a better understanding of the task." : ""}
 - Once you've gained more context about the user's request, you should architect a detailed plan for how you will accomplish the task. Present the plan to the user using the plan_mode_respond tool.
 - Then you might ask the user if they are pleased with this plan, or if they would like to make any changes. Think of this as a brainstorming session where you can discuss the task and plan the best way to accomplish it.
-- Finally once it seems like you've reached a good plan, ask the user to switch you back to ACT MODE to implement the solution.`
+- Finally once it seems like you've reached a good plan, ask the user to switch you back to ACT MODE to implement the solution.
+
+## Important: User Intent Recognition
+
+**If the user explicitly asks to start writing code, create files, or implement features**, you should:
+1. Recognize this as a request to start implementation
+2. Acknowledge the plan is ready
+3. Ask the user to switch to ACT MODE if you're still in Plan Mode
+4. Once in ACT MODE, immediately start implementing the code
+
+**Examples of user requests that indicate implementation intent:**
+- "开始写代码"
+- "开始实现"
+- "创建文件"
+- "开始编码"
+- "实现功能"
+- "按照计划执行"
+- "开始开发"
+
+**Do not** wait for the user to explicitly say "switch to Act Mode" - recognize their intent to start coding and prompt them to switch if necessary.`
 
 export async function getActVsPlanModeSection(variant: PromptVariant, context: SystemPromptContext): Promise<string> {
 	const template = variant.componentOverrides?.[SystemPromptSection.ACT_VS_PLAN]?.template || getActVsPlanModeTemplateText

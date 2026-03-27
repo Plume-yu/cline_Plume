@@ -1,6 +1,7 @@
 import { EmptyRequest, StringRequest } from "@shared/proto/cline/common"
 import { VSCodeButton, VSCodeCheckbox, VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import React, { useCallback, useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
 import styled from "styled-components"
 import { BROWSER_VIEWPORT_PRESETS } from "../../../../../src/shared/BrowserSettings"
 import { useExtensionState } from "../../../context/ExtensionStateContext"
@@ -23,6 +24,8 @@ const ConnectionStatusIndicator = ({
 	isConnected: boolean | null
 	remoteBrowserEnabled?: boolean
 }) => {
+	const { t } = useTranslation()
+	
 	if (!remoteBrowserEnabled) {
 		return null
 	}
@@ -32,21 +35,22 @@ const ConnectionStatusIndicator = ({
 			{isChecking ? (
 				<>
 					<Spinner />
-					<StatusText>Checking connection...</StatusText>
+					<StatusText>{t("browser.checkingConnection")}</StatusText>
 				</>
 			) : isConnected === true ? (
 				<>
 					<CheckIcon className="codicon codicon-check" />
-					<StatusText style={{ color: "var(--vscode-terminal-ansiGreen)" }}>Connected</StatusText>
+					<StatusText style={{ color: "var(--vscode-terminal-ansiGreen)" }}>{t("browser.connected")}</StatusText>
 				</>
 			) : isConnected === false ? (
-				<StatusText style={{ color: "var(--vscode-errorForeground)" }}>Not connected</StatusText>
+				<StatusText style={{ color: "var(--vscode-errorForeground)" }}>{t("browser.notConnected")}</StatusText>
 			) : null}
 		</StatusContainer>
 	)
 }
 
 export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ renderSectionHeader }) => {
+	const { t } = useTranslation()
 	const { browserSettings } = useExtensionState()
 	const [isCheckingConnection, setIsCheckingConnection] = useState(false)
 	const [connectionStatus, setConnectionStatus] = useState<boolean | null>(null)
@@ -55,7 +59,6 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 	const [isBundled, setIsBundled] = useState(false)
 	const [detectedChromePath, setDetectedChromePath] = useState<string | null>(null)
 
-	// Auto-clear relaunch result message after 15 seconds
 	useEffect(() => {
 		if (relaunchResult) {
 			const timer = setTimeout(() => {
@@ -65,7 +68,6 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 		}
 	}, [relaunchResult])
 
-	// Request detected Chrome path on mount
 	useEffect(() => {
 		BrowserServiceClient.getDetectedChromePath(EmptyRequest.create({}))
 			.then((result) => {
@@ -77,7 +79,6 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 			})
 	}, [])
 
-	// Function to check connection once without changing UI state immediately
 	const checkConnectionOnce = useCallback(() => {
 		if (browserSettings.remoteBrowserHost) {
 			BrowserServiceClient.testBrowserConnection(StringRequest.create({ value: browserSettings.remoteBrowserHost }))
@@ -100,7 +101,6 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 		}
 	}, [browserSettings.remoteBrowserHost])
 
-	// Setup continuous polling for connection status when remote browser is enabled
 	useEffect(() => {
 		if (!browserSettings.remoteBrowserEnabled) {
 			setIsCheckingConnection(false)
@@ -144,13 +144,12 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 				console.error("Error relaunching Chrome:", error)
 				setRelaunchResult({
 					success: false,
-					message: `Error relaunching Chrome: ${error.message}`,
+					message: `${t("browser.relaunchError")}: ${error.message}`,
 				})
 				setDebugMode(false)
 			})
 	}
 
-	// Determine if we should show the relaunch button
 	const isRemoteEnabled = Boolean(browserSettings.remoteBrowserEnabled)
 	const shouldShowRelaunchButton = isRemoteEnabled && connectionStatus === false
 	const isSubSettingsOpen = !(browserSettings.disableToolUse || false)
@@ -160,14 +159,13 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 			{renderSectionHeader("browser")}
 			<Section>
 				<div id="browser-settings-section" style={{ marginBottom: 20 }}>
-					{/* Master Toggle */}
 					<div style={{ marginBottom: isSubSettingsOpen ? 0 : 10 }}>
 						<VSCodeCheckbox
 							checked={browserSettings.disableToolUse || false}
 							onChange={(e) =>
 								updateSetting("browserSettings", { disableToolUse: (e.target as HTMLInputElement).checked })
 							}>
-							Disable browser tool usage
+							{t("browser.disableToolUse")}
 						</VSCodeCheckbox>
 						<p
 							style={{
@@ -175,14 +173,14 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 								color: "var(--vscode-descriptionForeground)",
 								margin: "4px 0 0 0px",
 							}}>
-							Prevent Cline from using browser actions (e.g. launch, click, type).
+							{t("browser.disableToolUseDesc")}
 						</p>
 					</div>
 
 					<CollapsibleContent isOpen={isSubSettingsOpen}>
 						<div style={{ marginBottom: 15 }}>
 							<div style={{ marginBottom: 8 }}>
-								<label style={{ fontWeight: "500", display: "block", marginBottom: 5 }}>Viewport size</label>
+								<label style={{ fontWeight: "500", display: "block", marginBottom: 5 }}>{t("browser.viewportSize")}</label>
 								<VSCodeDropdown
 									onChange={(event) => handleViewportChange(event as Event)}
 									style={{ width: "100%" }}
@@ -208,13 +206,11 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									color: "var(--vscode-descriptionForeground)",
 									margin: 0,
 								}}>
-								Set the size of the browser viewport for screenshots and interactions.
+								{t("browser.viewportSizeDesc")}
 							</p>
 						</div>
 
 						<div style={{ marginBottom: 0 }}>
-							{" "}
-							{/* This div now contains Remote Connection & Chrome Path */}
 							<div
 								style={{
 									marginBottom: 4,
@@ -227,12 +223,11 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									onChange={(e) => {
 										const enabled = (e.target as HTMLInputElement).checked
 										updateSetting("browserSettings", { remoteBrowserEnabled: enabled })
-										// If disabling, also clear the host
 										if (!enabled) {
 											updateSetting("browserSettings", { remoteBrowserHost: undefined })
 										}
 									}}>
-									Use remote browser connection
+									{t("browser.useRemoteConnection")}
 								</VSCodeCheckbox>
 								<ConnectionStatusIndicator
 									isChecking={isCheckingConnection}
@@ -246,25 +241,22 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 									color: "var(--vscode-descriptionForeground)",
 									margin: "0 0 6px 0px",
 								}}>
-								Enable Cline to use your Chrome
-								{isBundled
-									? "(not detected on your machine)"
-									: detectedChromePath
-										? ` (${detectedChromePath})`
-										: ""}
-								. You can specify a custom path below. Using a remote browser connection requires starting Chrome
-								in debug mode
+								{t("browser.remoteConnectionDesc", {
+									status: isBundled
+										? t("browser.notDetected")
+										: detectedChromePath
+											? ` (${detectedChromePath})`
+											: ""
+								})}
 								{browserSettings.remoteBrowserEnabled ? (
 									<>
 										{" "}
-										manually (<code>--remote-debugging-port=9222</code>) or using the button below. Enter the
-										host address or leave it blank for automatic discovery.
+										{t("browser.remoteConnectionDescExtended")}
 									</>
 								) : (
 									"."
 								)}
 							</p>
-							{/* Moved remote-specific settings to appear directly after enabling remote connection */}
 							{browserSettings.remoteBrowserEnabled && (
 								<div style={{ marginLeft: 0, marginTop: 8 }}>
 									<DebouncedTextField
@@ -282,7 +274,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 												disabled={debugMode}
 												onClick={relaunchChromeDebugMode}
 												style={{ flex: 1 }}>
-												{debugMode ? "Launching Browser..." : "Launch Browser with Debug Mode"}
+												{debugMode ? t("browser.launchingBrowser") : t("browser.launchDebugMode")}
 											</VSCodeButton>
 										</div>
 									)}
@@ -315,12 +307,11 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 										}}></p>
 								</div>
 							)}
-							{/* Chrome Executable Path section now follows remote-specific settings */}
 							<div style={{ marginBottom: 8, marginTop: 8 }}>
 								<label
 									htmlFor="chrome-executable-path"
 									style={{ fontWeight: "500", display: "block", marginBottom: 5 }}>
-									Chrome Executable Path (Optional)
+									{t("browser.chromePath")}
 								</label>
 								<DebouncedTextField
 									id="chrome-executable-path"
@@ -335,15 +326,14 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 										color: "var(--vscode-descriptionForeground)",
 										margin: "4px 0 0 0",
 									}}>
-									Leave blank to auto-detect.
+									{t("browser.chromePathDesc")}
 								</p>
 							</div>
-							{/* Custom Browser Arguments section */}
 							<div style={{ marginBottom: 8, marginTop: 8 }}>
 								<label
 									htmlFor="custom-browser-args"
 									style={{ fontWeight: "500", display: "block", marginBottom: 5 }}>
-									Custom Browser Arguments (Optional)
+									{t("browser.customArgs")}
 								</label>
 								<DebouncedTextField
 									id="custom-browser-args"
@@ -358,7 +348,7 @@ export const BrowserSettingsSection: React.FC<BrowserSettingsSectionProps> = ({ 
 										color: "var(--vscode-descriptionForeground)",
 										margin: "4px 0 0 0",
 									}}>
-									Space-separated arguments to pass to the browser executable.
+									{t("browser.customArgsDesc")}
 								</p>
 							</div>
 						</div>

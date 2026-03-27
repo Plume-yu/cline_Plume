@@ -340,17 +340,64 @@ const PreWithCopyButton = ({ children, ...preProps }: React.HTMLAttributes<HTMLP
 const FILE_PATH_REGEX = /^(?!\/)[\w\-./]+(?<!\/)$/
 
 /**
- * Custom remark plugin that marks potential file paths in inline code blocks
+ * Custom remark plugin that marks potential file paths in both inline code blocks and regular text
  * This is synchronous - actual file existence checking happens in the React component
  */
 const remarkMarkPotentialFilePaths = () => {
 	return (tree: Node) => {
+		// Check inline code blocks
 		visit(tree, "inlineCode", (node: Node & { value: string; data?: any }) => {
 			if (FILE_PATH_REGEX.test(node.value) && !node.value.includes("\n")) {
 				// Mark as potential file path - actual checking happens in React component
 				node.data = node.data || {}
 				node.data.hProperties = node.data.hProperties || {}
 				node.data.hProperties["data-potential-file-path"] = "true"
+			}
+		})
+
+		// Check regular text nodes for file paths
+		visit(tree, "text", (node: any, index: number, parent: any) => {
+			if (!parent || typeof node.value !== "string") {
+				return
+			}
+
+			// Split text into parts to find file paths
+			const parts = []
+			let lastIndex = 0
+			const matches = node.value.matchAll(FILE_PATH_REGEX)
+
+			for (const match of matches) {
+				const filePath = match[0]
+				const start = match.index || 0
+				const end = start + filePath.length
+
+				// Add text before the file path
+				if (start > lastIndex) {
+					parts.push({ type: "text", value: node.value.substring(lastIndex, start) })
+				}
+
+				// Add the file path as a code node with potential file path marker
+				parts.push({
+					type: "inlineCode",
+					value: filePath,
+					data: {
+						hProperties: {
+							"data-potential-file-path": "true"
+						}
+					}
+				})
+
+				lastIndex = end
+			}
+
+			// Add remaining text
+			if (lastIndex < node.value.length) {
+				parts.push({ type: "text", value: node.value.substring(lastIndex) })
+			}
+
+			// Replace the original text node with our new nodes if we found file paths
+			if (parts.length > 1) {
+				parent.children.splice(index, 1, ...parts)
 			}
 		})
 	}

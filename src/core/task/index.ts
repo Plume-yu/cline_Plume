@@ -59,7 +59,7 @@ import { combineApiRequests } from "@shared/combineApiRequests"
 import { combineCommandSequences } from "@shared/combineCommandSequences"
 import { ClineApiReqCancelReason, ClineApiReqInfo, ClineAsk, ClineMessage, ClineSay } from "@shared/ExtensionMessage"
 import { HistoryItem } from "@shared/HistoryItem"
-import { DEFAULT_LANGUAGE_SETTINGS, getLanguageKey, LanguageDisplay } from "@shared/Languages"
+import { getLanguageKey, LanguageDisplay } from "@shared/Languages"
 import { USER_CONTENT_TAGS } from "@shared/messages/constants"
 import { convertClineMessageToProto } from "@shared/proto-conversions/cline-message"
 import { ClineDefaultTool, READ_ONLY_TOOLS } from "@shared/tools"
@@ -924,12 +924,14 @@ export class Task {
 	}
 
 	async sayAndCreateMissingParamError(toolName: ClineDefaultTool, paramName: string, relPath?: string) {
-		await this.say(
-			"error",
-			`Cline tried to use ${toolName}${
-				relPath ? ` for '${relPath.toPosix()}'` : ""
-			} without value for required parameter '${paramName}'. Retrying...`,
-		)
+		const preferredLanguage = this.stateManager.getGlobalSettingsKey("preferredLanguage")
+		const isChinese = preferredLanguage && (preferredLanguage.includes("中文") || preferredLanguage.includes("zh"))
+		
+		const errorMessage = isChinese 
+			? `Cline 尝试使用 ${toolName}${relPath ? ` 处理 '${relPath.toPosix()}'` : ""} 时缺少必需参数 '${paramName}' 的值。正在重试...`
+			: `Cline tried to use ${toolName}${relPath ? ` for '${relPath.toPosix()}'` : ""} without value for required parameter '${paramName}'. Retrying...`
+		
+		await this.say("error", errorMessage)
 		return formatResponse.toolError(formatResponse.missingToolParameterError(paramName))
 	}
 
@@ -1879,10 +1881,31 @@ export class Task {
 		const supportsBrowserUse = modelSupportsBrowserUse && !disableBrowserTool // only enable browser use if the model supports it and the user hasn't disabled it
 		const preferredLanguageRaw = this.stateManager.getGlobalSettingsKey("preferredLanguage")
 		const preferredLanguage = getLanguageKey(preferredLanguageRaw as LanguageDisplay)
-		const preferredLanguageInstructions =
-			preferredLanguage && preferredLanguage !== DEFAULT_LANGUAGE_SETTINGS
-				? `# Preferred Language\n\nSpeak in ${preferredLanguage}.`
-				: ""
+		let preferredLanguageInstructions = ""
+		if (preferredLanguage) {
+			if (preferredLanguage === "zh-CN" || preferredLanguage === "zh-TW") {
+				preferredLanguageInstructions = `# 语言要求（强制执行）
+
+你必须使用${preferredLanguage === "zh-CN" ? "简体中文" : "繁体中文"}进行所有回复。
+
+**强制规则**：
+1. 所有思考过程必须使用中文
+2. 所有任务描述必须使用中文
+3. 所有代码注释必须使用中文
+4. 所有用户交互必须使用中文
+5. 禁止使用英文进行任何描述
+
+**允许例外**：
+- 代码中的变量名、函数名、类名
+- 技术术语（API、JSON、HTTP等）
+- 引用的英文错误信息
+
+**违规处理**：
+如果检测到使用英文回复，必须立即转换为中文。`
+			} else {
+				preferredLanguageInstructions = `# Preferred Language\n\nSpeak in ${preferredLanguage}.`
+			}
+		}
 
 		const { globalToggles, localToggles } = await refreshClineRulesToggles(this.controller, this.cwd)
 		const { windsurfLocalToggles, cursorLocalToggles, agentsLocalToggles } = await refreshExternalRulesToggles(
@@ -2380,11 +2403,20 @@ export class Task {
 					message: "Cline is having trouble. Would you like to continue the task?",
 				})
 			}
+			const preferredLanguage = this.stateManager.getGlobalSettingsKey("preferredLanguage")
+			const isChinese = preferredLanguage && (preferredLanguage.includes("中文") || preferredLanguage.includes("zh"))
+			
+			const errorMessage = this.api.getModel().id.includes("claude")
+				? (isChinese 
+					? '这可能表明 Cline 的思考过程失败或无法正确使用工具，这可以通过一些用户指导来缓解（例如："尝试将任务分解为更小的步骤"）。'
+					: "This may indicate a failure in Cline's thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. \"Try breaking down the task into smaller steps\").")
+				: (isChinese
+					? "Cline 使用复杂的提示和迭代任务执行，这对能力较弱的模型可能具有挑战性。为获得最佳结果，建议使用 Claude 4.5 Sonnet，因为它具有先进的智能编码能力。"
+					: "Cline uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 4.5 Sonnet for its advanced agentic coding capabilities.")
+			
 			const { response, text, images, files } = await this.ask(
 				"mistake_limit_reached",
-				this.api.getModel().id.includes("claude")
-					? `This may indicate a failure in Cline's thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
-					: "Cline uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 4.5 Sonnet for its advanced agentic coding capabilities.",
+				errorMessage,
 			)
 			if (response === "messageResponse") {
 				// Display the user's message in the chat UI

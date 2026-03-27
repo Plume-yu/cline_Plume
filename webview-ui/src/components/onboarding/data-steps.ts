@@ -1,3 +1,5 @@
+import i18n from "@/i18n"
+
 export enum NEW_USER_TYPE {
 	FREE = "free",
 	POWER = "power",
@@ -5,50 +7,65 @@ export enum NEW_USER_TYPE {
 }
 
 type UserTypeSelection = {
-	title: string
-	description: string
+	titleKey: string
+	descriptionKey: string
 	type: NEW_USER_TYPE
 }
 
-export const STEP_CONFIG = {
+type ButtonAction = "done" | "next" | "signin" | "signup" | "back"
+type ButtonVariant = "default" | "secondary"
+
+type StepButton = {
+	text: string
+	action: ButtonAction
+	variant: ButtonVariant
+}
+
+type StepConfig = {
+	title: string
+	description?: string
+	buttons: StepButton[]
+}
+
+export const getStepConfig = (): Record<string, StepConfig> => ({
 	0: {
-		title: "How will you use Cline?",
-		description: "Select an option below to get started.",
+		title: i18n.t("onboarding.howWillYouUse"),
+		description: i18n.t("onboarding.selectOptionToStart"),
 		buttons: [
-			{ text: "Continue", action: "next", variant: "default" },
-			{ text: "Login to Cline", action: "signin", variant: "secondary" },
+			{ text: i18n.t("common.continue"), action: "next" as ButtonAction, variant: "default" as ButtonVariant },
+			{ text: i18n.t("onboarding.loginToCline"), action: "signin" as ButtonAction, variant: "secondary" as ButtonVariant },
 		],
 	},
 	[NEW_USER_TYPE.FREE]: {
-		title: "Select a free model",
+		title: i18n.t("onboarding.selectFreeModel"),
 		buttons: [
-			{ text: "Create my Account", action: "signup", variant: "default" },
-			{ text: "Back", action: "back", variant: "secondary" },
+			{ text: i18n.t("onboarding.createAccount"), action: "signup" as ButtonAction, variant: "default" as ButtonVariant },
+			{ text: i18n.t("common.back"), action: "back" as ButtonAction, variant: "secondary" as ButtonVariant },
 		],
 	},
 	[NEW_USER_TYPE.POWER]: {
-		title: "Select your model",
+		title: i18n.t("onboarding.selectModel"),
 		buttons: [
-			{ text: "Create my Account", action: "signup", variant: "default" },
-			{ text: "Back", action: "back", variant: "secondary" },
+			{ text: i18n.t("onboarding.createAccount"), action: "signup" as ButtonAction, variant: "default" as ButtonVariant },
+			{ text: i18n.t("common.back"), action: "back" as ButtonAction, variant: "secondary" as ButtonVariant },
 		],
 	},
 	[NEW_USER_TYPE.BYOK]: {
-		title: "Configure your provider",
+		title: i18n.t("onboarding.configureProvider"),
 		buttons: [
-			{ text: "Continue", action: "done", variant: "default" },
-			{ text: "Back", action: "back", variant: "secondary" },
+			{ text: i18n.t("common.continue"), action: "done" as ButtonAction, variant: "default" as ButtonVariant },
+			{ text: i18n.t("common.back"), action: "back" as ButtonAction, variant: "secondary" as ButtonVariant },
 		],
 	},
 	2: {
-		title: "Almost there!",
-		description: "Complete account creation in your browser. Then come back here to finish up.",
-		buttons: [{ text: "Back", action: "back", variant: "secondary" }],
+		title: i18n.t("onboarding.almostThere"),
+		description: i18n.t("onboarding.completeAccountCreation"),
+		buttons: [{ text: i18n.t("common.back"), action: "back" as ButtonAction, variant: "secondary" as ButtonVariant }],
 	},
-} as const
+})
 
 export const USER_TYPE_SELECTIONS: UserTypeSelection[] = [
-	{ title: "Absolutely Free", description: "Get started at no cost", type: NEW_USER_TYPE.FREE },
-	{ title: "Frontier Model", description: "Claude 4.5, GPT-5 Codex, etc", type: NEW_USER_TYPE.POWER },
-	{ title: "Bring my own API key", description: "Use Cline with your provider of choice", type: NEW_USER_TYPE.BYOK },
+	{ titleKey: "onboarding.absolutelyFree", descriptionKey: "onboarding.getStartedNoCost", type: NEW_USER_TYPE.FREE },
+	{ titleKey: "onboarding.frontierModel", descriptionKey: "onboarding.frontierModelDesc", type: NEW_USER_TYPE.POWER },
+	{ titleKey: "onboarding.bringOwnKey", descriptionKey: "onboarding.bringOwnKeyDesc", type: NEW_USER_TYPE.BYOK },
 ]

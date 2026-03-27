@@ -1,6 +1,7 @@
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import debounce from "debounce"
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card"
 import { Progress } from "@/components/ui/progress"
 import { formatLargeNumber as formatTokenNumber } from "@/utils/format"
@@ -26,30 +27,33 @@ interface ContextWindowProgressProps extends ContextWindowInfoProps {
 const ConfirmationDialog = memo<{
 	onConfirm: (e: React.MouseEvent) => void
 	onCancel: (e: React.MouseEvent) => void
-}>(({ onConfirm, onCancel }) => (
-	<div className="text-sm my-2 flex items-center gap-0 justify-between">
-		<span className="font-semibold text-sm">Compact the current task?</span>
-		<span className="flex gap-1">
-			<VSCodeButton
-				appearance="secondary"
-				className="text-sm"
-				onClick={onCancel}
-				title="No, keep the task as is"
-				type="button">
-				Cancel
-			</VSCodeButton>
-			<VSCodeButton
-				appearance="primary"
-				autoFocus={true}
-				className="text-sm"
-				onClick={onConfirm}
-				title="Yes, compact the task"
-				type="button">
-				Yes
-			</VSCodeButton>
-		</span>
-	</div>
-))
+}>(({ onConfirm, onCancel }) => {
+	const { t } = useTranslation()
+	return (
+		<div className="text-sm my-2 flex items-center gap-0 justify-between">
+			<span className="font-semibold text-sm">{t("contextWindow.compactTask")}</span>
+			<span className="flex gap-1">
+				<VSCodeButton
+					appearance="secondary"
+					className="text-sm"
+					onClick={onCancel}
+					title={t("contextWindow.cancel")}
+					type="button">
+					{t("contextWindow.cancel")}
+				</VSCodeButton>
+				<VSCodeButton
+					appearance="primary"
+					autoFocus={true}
+					className="text-sm"
+					onClick={onConfirm}
+					title={t("contextWindow.yes")}
+					type="button">
+					{t("contextWindow.yes")}
+				</VSCodeButton>
+			</span>
+		</div>
+	)
+})
 ConfirmationDialog.displayName = "ConfirmationDialog"
 
 const ContextWindow: React.FC<ContextWindowProgressProps> = ({
@@ -62,6 +66,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 	cacheWrites,
 	cacheReads,
 }) => {
+	const { t } = useTranslation()
 	const [isOpened, setIsOpened] = useState(false)
 	const [confirmationNeeded, setConfirmationNeeded] = useState(false)
 	const progressBarRef = useRef<HTMLDivElement>(null)
@@ -140,9 +145,9 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 
 	return (
 		<div className="flex flex-col my-1.5" onMouseLeave={debounceCloseHover}>
-			<div className="flex gap-1 flex-row @max-xs:flex-col @max-xs:items-start items-center text-sm">
+				<div className="flex gap-1 flex-row @max-xs:flex-col @max-xs:items-start items-center text-sm">
 				<div className="flex items-center gap-1.5 flex-1 whitespace-nowrap">
-					<span className="cursor-pointer text-sm" title="Current tokens used in this request">
+					<span className="cursor-pointer text-sm" title={t("contextWindow.currentTokens")}>
 						{formatTokenNumber(tokenData.used)}
 					</span>
 					<div className="flex relative items-center gap-1 flex-1 w-full h-full" onMouseEnter={() => setIsOpened(true)}>
@@ -166,7 +171,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 									onFocus={handleFocus}
 									ref={progressBarRef}>
 									<Progress
-										aria-label="Context window usage progress"
+										aria-label={t("contextWindow.usageProgress")}
 										color="success"
 										value={tokenData.percentage}
 									/>
@@ -175,7 +180,7 @@ const ContextWindow: React.FC<ContextWindowProgressProps> = ({
 							</HoverCardTrigger>
 						</HoverCard>
 					</div>
-					<span className="cursor-pointer text-sm" title="Maximum context window size for this model">
+					<span className="cursor-pointer text-sm" title={t("contextWindow.maxContextWindow")}>
 						{formatTokenNumber(tokenData.max)}
 					</span>
 				</div>

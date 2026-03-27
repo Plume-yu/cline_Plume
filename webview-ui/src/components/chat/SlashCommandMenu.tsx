@@ -1,6 +1,7 @@
 import type { McpServer } from "@shared/mcp"
 import type { SlashCommand } from "@/utils/slash-commands"
 import React, { useCallback, useEffect, useRef } from "react"
+import { useTranslation } from "react-i18next"
 import ScreenReaderAnnounce from "@/components/common/ScreenReaderAnnounce"
 import { useMenuAnnouncement } from "@/hooks/useMenuAnnouncement"
 import { getMatchingSlashCommands } from "@/utils/slash-commands"
@@ -30,9 +31,9 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	remoteWorkflows,
 	mcpServers = [],
 }) => {
+	const { t } = useTranslation()
 	const menuRef = useRef<HTMLDivElement>(null)
 
-	// Filter commands based on query
 	const filteredCommands = getMatchingSlashCommands(
 		query,
 		localWorkflowToggles,
@@ -45,7 +46,6 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "custom")
 	const mcpCommands = filteredCommands.filter((cmd) => cmd.section === "mcp")
 
-	// Screen reader announcements
 	const getCommandLabel = useCallback((command: SlashCommand) => {
 		const description = command.description ? `, ${command.description}` : ""
 		return `${command.name}${description}`
@@ -80,7 +80,6 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 		}
 	}, [selectedIndex])
 
-	// Create a reusable function for rendering a command section
 	const renderCommandSection = (commands: SlashCommand[], title: string, indexOffset: number, showDescriptions: boolean) => {
 		if (commands.length === 0) {
 			return null
@@ -131,25 +130,25 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 			<ScreenReaderAnnounce message={announcement} />
 			<div
 				aria-activedescendant={filteredCommands.length > 0 ? `slash-command-menu-item-${selectedIndex}` : undefined}
-				aria-label="Slash commands"
+				aria-label={t("slashCommands.title")}
 				className="bg-(--vscode-dropdown-background) border border-(--vscode-editorGroup-border) rounded-[3px] shadow-[0_4px_10px_rgba(0,0,0,0.25)] flex flex-col overflow-y-auto"
 				ref={menuRef}
 				role="listbox"
 				style={{ maxHeight: "min(200px, calc(50vh))", overscrollBehavior: "contain" }}>
 				{filteredCommands.length > 0 ? (
 					<>
-						{renderCommandSection(defaultCommands, "Default Commands", 0, true)}
-						{renderCommandSection(workflowCommands, "Workflow Commands", defaultCommands.length, false)}
+						{renderCommandSection(defaultCommands, t("slashCommands.defaultCommands"), 0, true)}
+						{renderCommandSection(workflowCommands, t("slashCommands.workflowCommands"), defaultCommands.length, false)}
 						{renderCommandSection(
 							mcpCommands,
-							"MCP Prompts",
+							t("slashCommands.mcpPrompts"),
 							defaultCommands.length + workflowCommands.length,
 							true,
 						)}
 					</>
 				) : (
 					<div aria-selected="false" className="py-2 px-3 cursor-default flex flex-col" role="option">
-						<div className="text-[0.85em] text-(--vscode-descriptionForeground)">No matching commands found</div>
+						<div className="text-[0.85em] text-(--vscode-descriptionForeground)">{t("slashCommands.noMatching")}</div>
 					</div>
 				)}
 			</div>

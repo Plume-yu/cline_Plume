@@ -1,51 +1,25 @@
 import { LightbulbIcon } from "lucide-react"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { cn } from "@/lib/utils"
 
 interface FeatureTipItem {
-	text: string
+	textKey: string
 }
 
 const FEATURE_TIPS: FeatureTipItem[] = [
-	{
-		text: 'Enable "Double-Check Completion" in settings to have Cline verify its work before finishing a task.',
-	},
-	{
-		text: "Add a .clinerules file to your project root to give Cline project-specific instructions.",
-	},
-	{
-		text: "Switch to Plan Mode to discuss and plan an approach before Cline takes action.",
-	},
-	{
-		text: "Use @ in the chat input to add files, folders, or URLs as context for your task.",
-	},
-	{
-		text: "Set up MCP Servers to give Cline access to external tools and APIs.",
-	},
-	{
-		text: "Cline creates checkpoints after changes — you can always restore to a previous state.",
-	},
-	{
-		text: "Use /compact to condense long conversations and free up context window space.",
-	},
-	{
-		text: "Enable auto-approve for read-only tools like file reads to speed up exploration.",
-	},
-	{
-		text: "Use the quote button to select text from Cline's response and reference it in your reply.",
-	},
-	{
-		text: "You can drag and drop images into the chat to share screenshots with Cline.",
-	},
-	{
-		text: "Cline can browse websites — ask it to test your local dev server in the browser.",
-	},
-	{
-		text: "Use /reportbug to quickly file a GitHub issue with diagnostic context included.",
-	},
-	{
-		text: 'You can disable these tips in Settings → Features → "Feature Tips".',
-	},
+	{ textKey: "tip1" },
+	{ textKey: "tip2" },
+	{ textKey: "tip3" },
+	{ textKey: "tip4" },
+	{ textKey: "tip5" },
+	{ textKey: "tip6" },
+	{ textKey: "tip7" },
+	{ textKey: "tip8" },
+	{ textKey: "tip9" },
+	{ textKey: "tip10" },
+	{ textKey: "tip11" },
+	{ textKey: "tip12" },
 ]
 
 const SHOW_DELAY_MS = 2000
@@ -57,6 +31,7 @@ const FADE_DURATION_MS = 300
  * Appears after a brief delay and cycles through tips while Cline is thinking.
  */
 export const FeatureTip = memo(() => {
+	const { t } = useTranslation()
 	const [isVisible, setIsVisible] = useState(false)
 	const [hasFadedIn, setHasFadedIn] = useState(false)
 	const [isFading, setIsFading] = useState(false)
@@ -108,7 +83,7 @@ export const FeatureTip = memo(() => {
 			)}>
 			<LightbulbIcon className="size-3 text-description shrink-0 mt-[1px]" />
 			<span className="text-xs text-description leading-relaxed">
-				<span className="font-medium">Tip:</span> {currentTip.text}
+				<span className="font-medium">{t("featureTips.tip")}</span> {t(`featureTips.${currentTip.textKey}`)}
 			</span>
 		</div>
 	)
