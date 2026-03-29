@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { FileServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 
 function isWin32Path(filePath: string): boolean {
 	return /^[a-zA-Z]:\\/.test(filePath)
@@ -38,6 +39,7 @@ const RuleRow: React.FC<{
 	alwaysEnabled?: boolean
 	onDeleteSkill?: () => void
 }> = ({ rulePath, enabled, isGlobal, toggleRule, ruleType, isRemote = false, alwaysEnabled = false, onDeleteSkill }) => {
+	const { t } = useTranslation()
 	const displayName = getDisplayNameFromPath(rulePath)
 	const skillDisplayName = getSkillDisplayNameFromSkillMdPath(rulePath)
 
@@ -140,9 +142,7 @@ const RuleRow: React.FC<{
 							<TooltipTrigger asChild className="cursor-help">
 								<InfoIcon className="ml-1.5 opacity-70 size-[0.85rem]" />
 							</TooltipTrigger>
-							<TooltipContent>
-								Searches recursively for all AGENTS.md files in the workspace when a top-level AGENTS.md exists
-							</TooltipContent>
+							<TooltipContent>{t("rule.agentsTooltip")}</TooltipContent>
 						</Tooltip>
 					)}
 				</span>
@@ -155,22 +155,22 @@ const RuleRow: React.FC<{
 						disabled={isDisabled}
 						key={rulePath}
 						onClick={() => toggleRule(rulePath, !enabled)}
-						title={isDisabled ? "This rule is required and cannot be disabled" : undefined}
+						title={isDisabled ? t("rule.required") : undefined}
 					/>
 					<Button
-						aria-label={isRemote ? "View rule file" : "Edit rule file"}
+						aria-label={isRemote ? t("rule.view") : t("rule.edit")}
 						onClick={handleEditClick}
 						size="xs"
-						title={isRemote ? "View rule file (read-only)" : "Edit rule file"}
+						title={isRemote ? t("rule.viewReadOnly") : t("rule.edit")}
 						variant="icon">
 						{isRemote ? <EyeIcon /> : <PenIcon />}
 					</Button>
 					<Button
-						aria-label="Delete rule file"
+						aria-label={t("rule.delete")}
 						disabled={isRemote}
 						onClick={handleDeleteClick}
 						size="xs"
-						title="Delete rule file"
+						title={t("rule.delete")}
 						variant="icon">
 						<Trash2Icon />
 					</Button>

@@ -4,6 +4,7 @@ import { VSCodeCheckbox, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useEffect, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ModelsServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 import { DebouncedTextField } from "../common/DebouncedTextField"
 import { ModelInfoView } from "../common/ModelInfoView"
 import SapAiCoreModelPicker from "../SapAiCoreModelPicker"
@@ -24,6 +25,7 @@ interface SapAiCoreProviderProps {
  */
 export const SapAiCoreProvider = ({ showModelOptions, isPopup, currentMode }: SapAiCoreProviderProps) => {
 	const { apiConfiguration } = useExtensionState()
+	const { t } = useTranslation()
 	const { handleFieldChange, handleModeFieldsChange } = useApiConfigurationHandlers()
 
 	// Handle orchestration checkbox change
@@ -220,7 +222,7 @@ export const SapAiCoreProvider = ({ showModelOptions, isPopup, currentMode }: Sa
 								<button
 									className="ml-2 text-[11px] px-1.5 py-0.5 bg-(--vscode-button-background) text-(--vscode-button-foreground) border-none rounded-sm cursor-pointer"
 									onClick={fetchSapAiCoreModels}>
-									Retry
+									{t("sapAiCore.retry")}
 								</button>
 							</div>
 						) : hasRequiredCredentials ? (

@@ -4,6 +4,7 @@ import { PenIcon, Trash2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { FileServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 
 interface HookRowProps {
 	hookName: string
@@ -26,6 +27,7 @@ const HookRow: React.FC<HookRowProps> = ({
 	onToggle,
 	onDelete,
 }) => {
+	const { t } = useTranslation()
 	const handleEditClick = () => {
 		FileServiceClient.openFile(StringRequest.create({ value: absolutePath })).catch((err) =>
 			console.error("Failed to open file:", err),
@@ -57,12 +59,7 @@ const HookRow: React.FC<HookRowProps> = ({
 
 				{/* Toggle Switch */}
 				<div className="flex items-center space-x-2 gap-2">
-					<div
-						title={
-							isWindows
-								? "Hook toggling is not yet supported on Windows in this foundation PR. Hooks execute when the hook file exists."
-								: undefined
-						}>
+					<div title={isWindows ? t("hook.windowsToggleNotSupported") : undefined}>
 						<Switch
 							checked={enabled}
 							className="mx-1"
@@ -72,14 +69,14 @@ const HookRow: React.FC<HookRowProps> = ({
 							style={isWindows ? { opacity: 0.5, cursor: "not-allowed" } : undefined}
 						/>
 					</div>
-					<Button aria-label="Edit hook file" onClick={handleEditClick} size="xs" title="Edit hook file" variant="icon">
+					<Button aria-label={t("hook.edit")} onClick={handleEditClick} size="xs" title={t("hook.edit")} variant="icon">
 						<PenIcon />
 					</Button>
 					<Button
-						aria-label="Delete hook file"
+						aria-label={t("hook.delete")}
 						onClick={handleDeleteClick}
 						size="xs"
-						title="Delete hook file"
+						title={t("hook.delete")}
 						variant="icon">
 						<Trash2Icon />
 					</Button>

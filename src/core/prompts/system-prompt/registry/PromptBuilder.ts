@@ -1,5 +1,5 @@
 import { Logger } from "@/shared/services/Logger"
-import type { ClineDefaultTool } from "@/shared/tools"
+import { ClineDefaultTool } from "@/shared/tools"
 import { ClineToolSet } from "../registry/ClineToolSet"
 import { type ClineToolSpec, resolveInstruction } from "../spec"
 import { STANDARD_PLACEHOLDERS } from "../templates/placeholders"
@@ -148,16 +148,80 @@ export class PromptBuilder {
 		if (!config.parameters?.length && !config.description?.length) {
 			return ""
 		}
-		const displayName = config.name || config.id
-		const title = `## ${displayName}`
-		const description = [`Description: ${config.description}`]
 
-		if (!config.parameters?.length) {
-			config.parameters = []
+		// Check if user prefers Chinese
+		const isChinese =
+			context.preferredLanguageInstructions?.includes("Chinese") ||
+			context.preferredLanguageInstructions?.includes("中文") ||
+			false
+
+		// Clone config to avoid mutating original
+		const toolConfig = { ...config }
+
+		// Use Chinese descriptions for write_to_file tool if user prefers Chinese
+		if (isChinese && toolConfig.id === ClineDefaultTool.FILE_NEW) {
+			toolConfig.description =
+				"请求在指定路径写入文件内容。如果文件存在，将被覆盖；如果文件不存在，将创建新文件。此工具会自动创建写入文件所需的目录。**重要：当用户用中文要求创建文档、编写文档或生成规格说明时，必须使用此工具创建文件，而不是直接回复文本。**"
+			// Update parameters for Chinese
+			if (toolConfig.parameters) {
+				toolConfig.parameters = toolConfig.parameters.map((param) => {
+					if (param.name === "path") {
+						return {
+							...param,
+							instruction: `要写入的文件路径（相对于当前工作目录 {{CWD}}）{{MULTI_ROOT_HINT}}`,
+							usage: "文件路径",
+						}
+					}
+					if (param.name === "content") {
+						return {
+							...param,
+							instruction:
+								"要写入文件的内容。请提供文件的完整内容，不要截断或遗漏任何部分。即使文件部分内容未修改，也必须包含所有部分。",
+							usage: "文件内容",
+						}
+					}
+					return param
+				})
+			}
+		} else if (isChinese && toolConfig.id === ClineDefaultTool.FILE_READ) {
+			toolConfig.description =
+				"请求读取指定路径文件的内容。当您需要检查一个您不知道内容的现有文件时使用此工具，例如分析代码、查看文本文件或从配置文件中提取信息。返回的文本行前面会带有行标签（例如 `1 |`、`2 |`）。这些标签是元数据，不是文件内容的一部分。对于大文件，输出会自动限制为 1000 行。使用 start_line 和 end_line 来读取特定部分。自动从 PDF 和 DOCX 文件中提取原始文本。可能不适合其他类型的二进制文件，因为它会将原始内容作为字符串返回。请勿使用此工具列出目录内容。只能在文件上使用此工具。"
+			// Update parameters for Chinese
+			if (toolConfig.parameters) {
+				toolConfig.parameters = toolConfig.parameters.map((param) => {
+					if (param.name === "path") {
+						return {
+							...param,
+							instruction: `要读取的文件路径（相对于当前工作目录 {{CWD}}）{{MULTI_ROOT_HINT}}`,
+							usage: "文件路径",
+						}
+					}
+					if (param.name === "start_line") {
+						return { ...param, instruction: "开始读取的行号（从 1 开始，包含）。默认为 1。", usage: "1" }
+					}
+					if (param.name === "end_line") {
+						return {
+							...param,
+							instruction:
+								"停止读取的行号（从 1 开始，包含）。默认为 start_line + 1000。与 start_line 一起使用以读取大文件的特定部分。",
+							usage: "1000",
+						}
+					}
+					return param
+				})
+			}
+		}
+
+		const displayName = toolConfig.name || toolConfig.id
+		const title = `## ${displayName}`
+		const description = [`Description: ${toolConfig.description}`]
+
+		if (!toolConfig.parameters?.length) {
+			toolConfig.parameters = []
 		}
 
 		// Clone parameters to avoid mutating original
-		const params = [...config.parameters]
+		const params = [...toolConfig.parameters]
 
 		// Filter parameters based on dependencies and contextRequirements
 		const filteredParams = params.filter((p) => {

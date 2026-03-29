@@ -19,6 +19,7 @@ import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { StateServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 import { isAdminOrOwner } from "../account/helpers"
 import { Tab, TabContent, TabList, TabTrigger } from "../common/Tab"
 import ViewHeader from "../common/ViewHeader"
@@ -114,8 +115,8 @@ type SettingsViewProps = {
 }
 
 // Helper to render section header - moved outside component for better performance
-const renderSectionHeader = (tabId: string) => {
-	const tab = SETTINGS_TABS.find((t) => t.id === tabId)
+const renderSectionHeader = (tabId: string, tabs: any[]) => {
+	const tab = tabs.find((tab: any) => tab.id === tabId)
 	if (!tab) {
 		return null
 	}
@@ -131,6 +132,8 @@ const renderSectionHeader = (tabId: string) => {
 }
 
 const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
+	const { t } = useTranslation()
+
 	// Memoize to avoid recreation
 	const TAB_CONTENT_MAP: Record<SettingsTabID, React.FC<any>> = useMemo(
 		() => ({
@@ -149,7 +152,76 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 	const { version, environment, settingsInitialModelTab } = useExtensionState()
 	const { activeOrganization } = useClineAuth()
 
-	const [activeTab, setActiveTab] = useState<string>(targetSection || SETTINGS_TABS[0].id)
+	// 本地化的标签定义
+	const localizedTabs = useMemo(
+		() => [
+			{
+				id: "api-config" as SettingsTabID,
+				name: t("settings.apiConfig.name"),
+				tooltipText: t("settings.apiConfig.tooltip"),
+				headerText: t("settings.apiConfig.header"),
+				icon: SlidersHorizontal,
+			},
+			{
+				id: "features" as SettingsTabID,
+				name: t("settings.features.name"),
+				tooltipText: t("settings.features.tooltip"),
+				headerText: t("settings.features.header"),
+				icon: CheckCheck,
+			},
+			{
+				id: "browser" as SettingsTabID,
+				name: t("settings.browser.name"),
+				tooltipText: t("settings.browser.tooltip"),
+				headerText: t("settings.browser.header"),
+				icon: SquareMousePointer,
+			},
+			{
+				id: "terminal" as SettingsTabID,
+				name: t("settings.terminal.name"),
+				tooltipText: t("settings.terminal.tooltip"),
+				headerText: t("settings.terminal.header"),
+				icon: SquareTerminal,
+			},
+			{
+				id: "general" as SettingsTabID,
+				name: t("settings.general.name"),
+				tooltipText: t("settings.general.tooltip"),
+				headerText: t("settings.general.header"),
+				icon: Wrench,
+			},
+			{
+				id: "remote-config" as SettingsTabID,
+				name: t("settings.remoteConfig.name"),
+				tooltipText: t("settings.remoteConfig.tooltip"),
+				headerText: t("settings.remoteConfig.header"),
+				icon: HardDriveDownload,
+				hidden: (params?: { activeOrganization: UserOrganization | null }) => {
+					const org = params?.activeOrganization || null
+					return !org || !isAdminOrOwner(org)
+				},
+			},
+			{
+				id: "about" as SettingsTabID,
+				name: t("settings.about.name"),
+				tooltipText: t("settings.about.tooltip"),
+				headerText: t("settings.about.header"),
+				icon: Info,
+			},
+			// Only show in dev mode
+			{
+				id: "debug" as SettingsTabID,
+				name: t("settings.debug.name"),
+				tooltipText: t("settings.debug.tooltip"),
+				headerText: t("settings.debug.header"),
+				icon: FlaskConical,
+				hidden: () => !IS_DEV,
+			},
+		],
+		[t],
+	)
+
+	const [activeTab, setActiveTab] = useState<string>(targetSection || localizedTabs[0].id)
 
 	// Optimized message handler with early returns
 	const handleMessage = useCallback((event: MessageEvent) => {
@@ -169,7 +241,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 		}
 
 		// Check if valid tab ID
-		if (SETTINGS_TABS.some((tab) => tab.id === tabId)) {
+		if (localizedTabs.some((tab) => tab.id === tabId)) {
 			setActiveTab(tabId)
 			return
 		}
@@ -211,7 +283,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 
 	// Memoized tab item renderer
 	const renderTabItem = useCallback(
-		(tab: (typeof SETTINGS_TABS)[0]) => {
+		(tab: (typeof localizedTabs)[0]) => {
 			return (
 				<TabTrigger className="flex justify-baseline" data-testid={`tab-${tab.id}`} key={tab.id} value={tab.id}>
 					<Tooltip key={tab.id}>
@@ -244,7 +316,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 		}
 
 		// Special props for specific components
-		const props: any = { renderSectionHeader }
+		const props: any = { renderSectionHeader: (tabId: string) => renderSectionHeader(tabId, localizedTabs) }
 		if (activeTab === "debug") {
 			props.onResetState = handleResetState
 		} else if (activeTab === "about") {
@@ -254,18 +326,20 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 		}
 
 		return <Component {...props} />
-	}, [activeTab, handleResetState, settingsInitialModelTab, version])
+	}, [activeTab, handleResetState, localizedTabs, settingsInitialModelTab, version])
 
 	return (
 		<Tab>
-			<ViewHeader environment={environment} onDone={onDone} title="Settings" />
+			<ViewHeader environment={environment} onDone={onDone} title={t("settings.title")} />
 
 			<div className="flex flex-1 overflow-hidden">
 				<TabList
 					className="shrink-0 flex flex-col overflow-y-auto border-r border-sidebar-background"
 					onValueChange={setActiveTab}
 					value={activeTab}>
-					{SETTINGS_TABS.filter((tab) => !tab.hidden?.({ activeOrganization })).map(renderTabItem)}
+					{localizedTabs
+						.filter((tab) => !tab.hidden?.({ activeOrganization: activeOrganization || null }))
+						.map(renderTabItem)}
 				</TabList>
 
 				<TabContent className="flex-1 overflow-auto">{ActiveContent}</TabContent>

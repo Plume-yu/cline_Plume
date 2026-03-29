@@ -14,6 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { FileServiceClient, TaskServiceClient, WorktreeServiceClient } from "@/services/grpc-client"
 import { getEnvironmentColor } from "@/utils/environmentColors"
+import { useTranslation } from "@/utils/i18n"
 import CreateWorktreeModal from "./CreateWorktreeModal"
 import DeleteWorktreeModal from "./DeleteWorktreeModal"
 
@@ -23,6 +24,7 @@ type WorktreesViewProps = {
 
 const WorktreesView = ({ onDone }: WorktreesViewProps) => {
 	const { environment } = useExtensionState()
+	const { t } = useTranslation()
 	const [worktrees, setWorktrees] = useState<WorktreeProto[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -363,7 +365,7 @@ Please help me resolve these merge conflicts, then complete the merge, and delet
 						<AlertCircle className="w-8 h-8 text-[var(--vscode-errorForeground)] mb-2 shrink-0" />
 						<p className="text-[var(--vscode-errorForeground)]">{error}</p>
 						<VSCodeButton appearance="secondary" className="mt-3" onClick={loadWorktrees}>
-							Retry
+							{t("worktrees.retry")}
 						</VSCodeButton>
 					</div>
 				) : worktrees.length === 0 ? (

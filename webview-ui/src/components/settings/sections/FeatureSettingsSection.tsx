@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { type TranslationKey, useTranslation } from "@/utils/i18n"
 import Section from "../Section"
 import SettingsSlider from "../SettingsSlider"
 import { updateSetting } from "../utils/settingsHandlers"
@@ -32,114 +33,84 @@ interface FeatureToggle {
 	nestedKey?: string
 }
 
-const agentFeatures: FeatureToggle[] = [
+const agentFeatures: Omit<FeatureToggle, "label" | "description">[] = [
 	{
 		id: "subagents",
-		label: "Subagents",
-		description: "Let Cline run focused subagents in parallel to explore the codebase for you.",
 		stateKey: "subagentsEnabled",
 		settingKey: "subagentsEnabled",
 	},
 	{
 		id: "native-tool-call",
-		label: "Native Tool Call",
-		description: "Use native function calling when available",
 		stateKey: "nativeToolCallSetting",
 		settingKey: "nativeToolCallEnabled",
 	},
 	{
 		id: "parallel-tool-calling",
-		label: "Parallel Tool Calling",
-		description: "Execute multiple tool calls simultaneously",
 		stateKey: "enableParallelToolCalling",
 		settingKey: "enableParallelToolCalling",
 	},
 	{
 		id: "strict-plan-mode",
-		label: "Strict Plan Mode",
-		description: "Prevents file edits while in Plan mode",
 		stateKey: "strictPlanModeEnabled",
 		settingKey: "strictPlanModeEnabled",
 	},
 	{
 		id: "auto-compact",
-		label: "Auto Compact",
-		description: "Automatically compress conversation history.",
 		stateKey: "useAutoCondense",
 		settingKey: "useAutoCondense",
 	},
 	{
 		id: "focus-chain",
-		label: "Focus Chain",
-		description: "Maintain context focus across interactions",
 		stateKey: "focusChainEnabled",
 		settingKey: "focusChainSettings",
 		nestedKey: "enabled",
 	},
 ]
 
-const editorFeatures: FeatureToggle[] = [
+const editorFeatures: Omit<FeatureToggle, "label" | "description">[] = [
 	{
 		id: "show-feature-tips",
-		label: "Feature Tips",
-		description: "Show rotating tips during the thinking phase to help you discover Cline features.",
 		stateKey: "showFeatureTips",
 		settingKey: "showFeatureTips",
 	},
 	{
 		id: "background-edit",
-		label: "Background Edit",
-		description: "Allow edits without stealing editor focus",
 		stateKey: "backgroundEditEnabled",
 		settingKey: "backgroundEditEnabled",
 	},
 	{
 		id: "checkpoints",
-		label: "Checkpoints",
-		description: "Save progress at key points for easy rollback",
 		stateKey: "enableCheckpointsSetting",
 		settingKey: "enableCheckpointsSetting",
 	},
 	{
 		id: "cline-web-tools",
-		label: "Cline Web Tools",
-		description: "Access web browsing and search capabilities",
 		stateKey: "clineWebToolsEnabled",
 		settingKey: "clineWebToolsEnabled",
 	},
 	{
 		id: "worktrees",
-		label: "Worktrees",
-		description: "Enables git worktree management for running parallel Cline tasks.",
 		stateKey: "worktreesEnabled",
 		settingKey: "worktreesEnabled",
 	},
 ]
 
-const experimentalFeatures: FeatureToggle[] = [
+const experimentalFeatures: Omit<FeatureToggle, "label" | "description">[] = [
 	{
 		id: "yolo",
-		label: "Yolo Mode",
-		description:
-			"Execute tasks without user's confirmation. Auto-switches from Plan to Act mode and disables the ask question tool. Use with extreme caution.",
 		stateKey: "yoloModeToggled",
 		settingKey: "yoloModeToggled",
 	},
 	{
 		id: "double-check-completion",
-		label: "Double-Check Completion",
-		description:
-			"Rejects the first completion attempt and asks the model to re-verify its work against the original task requirements before accepting.",
 		stateKey: "doubleCheckCompletionEnabled",
 		settingKey: "doubleCheckCompletionEnabled",
 	},
 ]
 
-const advancedFeatures: FeatureToggle[] = [
+const advancedFeatures: Omit<FeatureToggle, "label" | "description">[] = [
 	{
 		id: "hooks",
-		label: "Hooks",
-		description: "Enable lifecycle and tool hooks during task execution.",
 		stateKey: "hooksEnabled",
 		settingKey: "hooksEnabled",
 	},
@@ -220,6 +191,26 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		doubleCheckCompletionEnabled,
 		showFeatureTips,
 	} = useExtensionState()
+	const { t } = useTranslation()
+
+	// Add labels and descriptions to features using translations
+	const getFeatureWithTranslations = (feature: Omit<FeatureToggle, "label" | "description">): FeatureToggle => {
+		// Handle special case for yolo
+		let camelCaseId = feature.id
+		if (feature.id === "yolo") {
+			camelCaseId = "yoloMode"
+		} else {
+			// Convert kebab-case to camelCase
+			camelCaseId = feature.id.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
+		}
+		const featureKey = `features.${camelCaseId}` as TranslationKey
+		const descriptionKey = `features.${camelCaseId}Description` as TranslationKey
+		return {
+			...feature,
+			label: t(featureKey),
+			description: t(descriptionKey),
+		}
+	}
 
 	const handleFocusChainIntervalChange = useCallback(
 		(value: number) => {
@@ -278,110 +269,130 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 				<div className="mb-5 flex flex-col gap-3">
 					{/* Core features */}
 					<div>
-						<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">Agent</div>
+						<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">
+							{t("features.agent")}
+						</div>
 						<div
 							className="relative p-3 pt-0 my-3 rounded-md border border-editor-widget-border/50"
 							id="agent-features">
-							{agentFeatures.map((feature) => (
-								<div key={feature.id}>
-									<FeatureRow
-										checked={featureState[feature.stateKey]}
-										description={feature.description}
-										isVisible={featureVisibility[feature.stateKey] ?? true}
-										key={feature.id}
-										label={feature.label}
-										onChange={(checked) =>
-											feature.nestedKey === "enabled"
-												? handleFeatureChange(feature, checked)
-												: updateSetting(feature.settingKey, checked)
-										}
-									/>
-									{feature.id === "focus-chain" && featureState[feature.stateKey] && (
-										<SettingsSlider
-											label="Reminder Interval (1-10)"
-											max={10}
-											min={1}
-											onChange={handleFocusChainIntervalChange}
-											step={1}
-											value={focusChainSettings?.remindClineInterval || 6}
-											valueWidth="w-6"
+							{agentFeatures.map((feature) => {
+								const translatedFeature = getFeatureWithTranslations(feature)
+								return (
+									<div key={feature.id}>
+										<FeatureRow
+											checked={featureState[translatedFeature.stateKey]}
+											description={translatedFeature.description}
+											isVisible={featureVisibility[translatedFeature.stateKey] ?? true}
+											key={feature.id}
+											label={translatedFeature.label}
+											onChange={(checked) =>
+												translatedFeature.nestedKey === "enabled"
+													? handleFeatureChange(translatedFeature, checked)
+													: updateSetting(translatedFeature.settingKey, checked)
+											}
 										/>
-									)}
-								</div>
-							))}
+										{feature.id === "focus-chain" && featureState[translatedFeature.stateKey] && (
+											<SettingsSlider
+												label={t("features.reminderInterval")}
+												max={10}
+												min={1}
+												onChange={handleFocusChainIntervalChange}
+												step={1}
+												value={focusChainSettings?.remindClineInterval || 6}
+												valueWidth="w-6"
+											/>
+										)}
+									</div>
+								)
+							})}
 						</div>
 					</div>
 
 					{/* Editor features */}
 					<div>
-						<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">Editor</div>
+						<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">
+							{t("features.editor")}
+						</div>
 						<div
 							className="relative p-3 pt-0 my-3 rounded-md border border-editor-widget-border/50"
 							id="optional-features">
-							{editorFeatures.map((feature) => (
-								<FeatureRow
-									checked={featureState[feature.stateKey]}
-									description={feature.description}
-									isVisible={featureVisibility[feature.stateKey] ?? true}
-									key={feature.id}
-									label={feature.label}
-									onChange={(checked) => handleFeatureChange(feature, checked)}
-								/>
-							))}
+							{editorFeatures.map((feature) => {
+								const translatedFeature = getFeatureWithTranslations(feature)
+								return (
+									<FeatureRow
+										checked={featureState[translatedFeature.stateKey]}
+										description={translatedFeature.description}
+										isVisible={featureVisibility[translatedFeature.stateKey] ?? true}
+										key={feature.id}
+										label={translatedFeature.label}
+										onChange={(checked) => handleFeatureChange(translatedFeature, checked)}
+									/>
+								)
+							})}
 						</div>
 					</div>
 
 					{/* Experimental features */}
 					<div>
-						<div className="text-xs font-medium uppercase tracking-wider mb-3 text-warning/80">Experimental</div>
+						<div className="text-xs font-medium uppercase tracking-wider mb-3 text-warning/80">
+							{t("features.experimental")}
+						</div>
 						<div
 							className="relative p-3 pt-0 my-3 rounded-md border border-editor-widget-border/50 w-full"
 							id="experimental-features">
-							{experimentalFeatures.map((feature) => (
-								<FeatureRow
-									checked={featureState[feature.stateKey]}
-									description={feature.description}
-									disabled={feature.id === "yolo" && isYoloRemoteLocked}
-									isRemoteLocked={feature.id === "yolo" && isYoloRemoteLocked}
-									isVisible={featureVisibility[feature.stateKey] ?? true}
-									key={feature.id}
-									label={feature.label}
-									onChange={(checked) => handleFeatureChange(feature, checked)}
-									remoteTooltip="This setting is managed by your organization's remote configuration"
-								/>
-							))}
+							{experimentalFeatures.map((feature) => {
+								const translatedFeature = getFeatureWithTranslations(feature)
+								return (
+									<FeatureRow
+										checked={featureState[translatedFeature.stateKey]}
+										description={translatedFeature.description}
+										disabled={feature.id === "yolo" && isYoloRemoteLocked}
+										isRemoteLocked={feature.id === "yolo" && isYoloRemoteLocked}
+										isVisible={featureVisibility[translatedFeature.stateKey] ?? true}
+										key={feature.id}
+										label={translatedFeature.label}
+										onChange={(checked) => handleFeatureChange(translatedFeature, checked)}
+										remoteTooltip={t("features.remoteConfigTooltip")}
+									/>
+								)
+							})}
 						</div>
 					</div>
 				</div>
 
 				{/* Advanced */}
 				<div>
-					<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">Advanced</div>
+					<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">
+						{t("features.advanced")}
+					</div>
 					<div className="relative p-3 my-3 rounded-md border border-editor-widget-border/50" id="advanced-features">
 						<div className="space-y-3">
-							{advancedFeatures.map((feature) => (
-								<FeatureRow
-									checked={featureState[feature.stateKey]}
-									description={feature.description}
-									isVisible={featureVisibility[feature.stateKey] ?? true}
-									key={feature.id}
-									label={feature.label}
-									onChange={(checked) => handleFeatureChange(feature, checked)}
-								/>
-							))}
+							{advancedFeatures.map((feature) => {
+								const translatedFeature = getFeatureWithTranslations(feature)
+								return (
+									<FeatureRow
+										checked={featureState[translatedFeature.stateKey]}
+										description={translatedFeature.description}
+										isVisible={featureVisibility[translatedFeature.stateKey] ?? true}
+										key={feature.id}
+										label={translatedFeature.label}
+										onChange={(checked) => handleFeatureChange(translatedFeature, checked)}
+									/>
+								)
+							})}
 
 							{/* MCP Display Mode */}
 							<div className="space-y-2">
-								<Label className="text-sm font-medium text-foreground">MCP Display Mode</Label>
-								<p className="text-xs text-muted-foreground">Controls how MCP responses are displayed</p>
+								<Label className="text-sm font-medium text-foreground">{t("features.mcpDisplayMode")}</Label>
+								<p className="text-xs text-muted-foreground">{t("features.mcpDisplayModeDescription")}</p>
 								<Select onValueChange={(v) => updateSetting("mcpDisplayMode", v)} value={mcpDisplayMode}>
 									<SelectTrigger className="w-full">
 										<SelectValue />
 									</SelectTrigger>
 									<SelectContent>
-										<SelectItem value="plain">Plain Text</SelectItem>
-										<SelectItem value="rich">Rich Display</SelectItem>
-										<SelectItem value="markdown">Markdown</SelectItem>
+										<SelectItem value="plain">{t("features.plainText")}</SelectItem>
+										<SelectItem value="rich">{t("features.richDisplay")}</SelectItem>
+										<SelectItem value="markdown">{t("features.markdown")}</SelectItem>
 									</SelectContent>
 								</Select>
 							</div>

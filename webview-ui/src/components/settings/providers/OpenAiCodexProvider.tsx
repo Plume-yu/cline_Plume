@@ -3,6 +3,7 @@ import { Mode } from "@shared/storage/types"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 import { ModelInfoView } from "../common/ModelInfoView"
 import { ModelSelector } from "../common/ModelSelector"
 import ReasoningEffortSelector from "../ReasoningEffortSelector"
@@ -22,6 +23,7 @@ interface OpenAiCodexProviderProps {
 export const OpenAiCodexProvider = ({ showModelOptions, isPopup, currentMode }: OpenAiCodexProviderProps) => {
 	const { apiConfiguration, openAiCodexIsAuthenticated } = useExtensionState()
 	const { handleModeFieldChange } = useApiConfigurationHandlers()
+	const { t } = useTranslation()
 
 	const { selectedModelId, selectedModelInfo } = normalizeApiConfiguration(apiConfiguration, currentMode)
 	const showReasoningEffort = supportsReasoningEffortForModelId(selectedModelId, true)
@@ -47,9 +49,9 @@ export const OpenAiCodexProvider = ({ showModelOptions, isPopup, currentMode }: 
 			<div style={{ marginBottom: "15px" }}>
 				{openAiCodexIsAuthenticated ? (
 					<div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-						<span style={{ color: "var(--vscode-descriptionForeground)" }}>Signed in to OpenAI Codex</span>
+						<span style={{ color: "var(--vscode-descriptionForeground)" }}>{t("openai.codex.signedIn")}</span>
 						<VSCodeButton appearance="secondary" onClick={handleSignOut}>
-							Sign Out
+							{t("openai.codex.signOut")}
 						</VSCodeButton>
 					</div>
 				) : (
@@ -60,9 +62,9 @@ export const OpenAiCodexProvider = ({ showModelOptions, isPopup, currentMode }: 
 								color: "var(--vscode-descriptionForeground)",
 								marginBottom: "10px",
 							}}>
-							Sign in with your ChatGPT Plus or Pro subscription to use GPT-5 models without an API key.
+							{t("openai.codex.signInDescription")}
 						</p>
-						<VSCodeButton onClick={handleSignIn}>Sign in to OpenAI Codex</VSCodeButton>
+						<VSCodeButton onClick={handleSignIn}>{t("openai.codex.signInButton")}</VSCodeButton>
 					</div>
 				)}
 			</div>

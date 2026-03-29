@@ -6,6 +6,7 @@ import { RefreshCwIcon } from "lucide-react"
 import { useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ModelsServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 import { DebouncedTextField } from "../common/DebouncedTextField"
 import { ModelAutocomplete } from "../common/ModelAutocomplete"
 import { ModelInfoView } from "../common/ModelInfoView"
@@ -26,6 +27,7 @@ interface LiteLlmProviderProps {
 export const LiteLlmProvider = ({ showModelOptions, isPopup, currentMode }: LiteLlmProviderProps) => {
 	const { apiConfiguration, remoteConfigSettings, liteLlmModels, refreshLiteLlmModels } = useExtensionState()
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
+	const { t } = useTranslation()
 
 	const [isLoading, setIsLoading] = useState(false)
 
@@ -154,10 +156,10 @@ export const LiteLlmProvider = ({ showModelOptions, isPopup, currentMode }: Lite
 					marginTop: "5px",
 					color: "var(--vscode-descriptionForeground)",
 				}}>
-				LiteLLM provides a unified interface to access various LLM providers' models. See their{" "}
+				LiteLLM provides a unified interface to access various LLM providers' models. See their
 				<VSCodeLink href="https://docs.litellm.ai/docs/" style={{ display: "inline", fontSize: "inherit" }}>
-					quickstart guide
-				</VSCodeLink>{" "}
+					{t("liteLlm.quickstartGuide")}
+				</VSCodeLink>
 				for more information.
 			</p>
 		</div>

@@ -4,10 +4,12 @@ import { useState } from "react"
 import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 
 export const ClineAccountInfoCard = () => {
 	const { clineUser } = useClineAuth()
 	const { navigateToAccount } = useExtensionState()
+	const { t } = useTranslation()
 	const [isLoading, setIsLoading] = useState(false)
 
 	const user = clineUser || undefined
@@ -29,15 +31,15 @@ export const ClineAccountInfoCard = () => {
 		<div className="max-w-[600px]">
 			{user ? (
 				<VSCodeButton appearance="secondary" onClick={handleShowAccount}>
-					View Billing & Usage
+					{t("cline.account.viewBilling")}
 				</VSCodeButton>
 			) : (
 				<div>
 					<VSCodeButton className="mt-0" disabled={isLoading} onClick={handleLogin}>
-						Sign Up with Cline
+						{t("cline.account.signUp")}
 						{isLoading && (
 							<span className="ml-1 animate-spin">
-								<span className="codicon codicon-refresh"></span>
+								<span className="codicon codicon-refresh" />
 							</span>
 						)}
 					</VSCodeButton>

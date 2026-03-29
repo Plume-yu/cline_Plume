@@ -5,6 +5,7 @@ import { RemoteConfigToggle } from "@/components/account/RemoteConfigToggle"
 import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
+import { useTranslation } from "@/utils/i18n"
 import Section from "../Section"
 
 interface RemoteConfigSectionProps {
@@ -23,6 +24,7 @@ function BaseRemoteConfigSection({ renderSectionHeader, children }: React.PropsW
 const AUTOMATIC_DELAY_MS = 30000
 
 function RefreshButton() {
+	const { t } = useTranslation()
 	const [isLoading, setIsLoading] = useState(false)
 	const [retryIn, setRetryIn] = useState<number | null>(null)
 	const intervalRef = useRef<NodeJS.Timeout>()
@@ -57,7 +59,7 @@ function RefreshButton() {
 			className={`w-full rounded-xs ${isLoading ? "animate-pulse" : ""}`}
 			disabled={isLoading || (retryIn !== null && retryIn > 0)}
 			onClick={() => onRefresh()}>
-			Refresh {retryIn && retryIn > 0 && <>(Retry in: {retryIn} seconds)</>}
+			{t("remoteConfig.refresh")} {retryIn && retryIn > 0 && <>{t("remoteConfig.retryIn", { seconds: retryIn })}</>}
 		</VSCodeButton>
 	)
 }
